@@ -1,3 +1,54 @@
+# Configure the AWS Provider
+provider "aws" {
+  region  = "us-east-1"
+}
+resource "aws_instance" "server" {
+  count = 4 # create four similar EC2 instances
+
+  ami           = "ami-08f3d892de259504d"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Server ${count.index}"
+  }
+}
+
+#4 users attached to group devops with s3 policy#
+
+provider "aws" {
+    region  = "us-east-1"
+}
+ resource "aws_launch_template" "user" {
+  name_prefix   = "user"
+  image_id      = "ami-08f3d892de259504d"
+  instance_type = "t2.micro"
+}
+resource "aws_iam_user" "devops_aws" {
+  count = 4
+  name = devops_user ${count.index}
+}
+resource "aws_iam_user_policy_attachment" "test" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+resource "aws_iam_group" "devops" {
+name = "devops"    
+}
+
+
+resource "aws_iam_policy" "s3policy" {
+  name        = "s3policy"
+  description = "Provides full access to all buckets via the AWS Management Console."
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+
+
+
+
+
+
+
+
 #user_group _policy
 
 provider "aws" {
