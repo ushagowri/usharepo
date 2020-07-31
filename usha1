@@ -1,3 +1,287 @@
+
+## 1.playbook to create a group "tomcat"
+
+---
+- hosts: linuxsysadmins
+  remote_user: ansible
+  become: yes
+  connection: ssh
+  tasks:
+   - name: Add group "tomcat" to remote server
+     group:
+       name: tomcat
+       state: present
+- name: Add user "tomcat" to remote server
+     user:
+       name: tomcat
+       comment: "Privileged User"
+       uid: 2o20
+       group: tomcat
+       append: yes
+       shell: /bin/bash
+       generate_ssh_key: yes
+ - name: Set user password "tomcat" 
+     name: tomcat
+     state: present
+     user: tomcat
+
+## 2. Create a playbook to edit /etc/sudoers file and add tomcat  user to sudoers file.tomcat user
+should have full sudo access with no passwd option #
+
+
+- name: Add user 'tomcat' 
+  user:
+    name: tomcat
+    state: present
+
+- name: Allow 'tomcat' user to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: 'tomcat'
+    line: 'tomcat ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+- name: sudo without password for tomcat user to sudoers file
+  copy:
+    content: 'tomcat ALL=(ALL:ALL) NOPASSWD:ALL'
+    dest: /etc/sudoers/tomcat_nopasswd
+    mode: 0440
+
+- name: Add sudoers file to tomcat user
+  user: name=tomcat  file= sudoers append=yes state=present createhome=yes
+
+
+- name: Set up authorized keys for the tomcat user
+  authorized_key: user=tomcat key="{{item}}"
+  with_file:
+    - /home/railsdev/.ssh/id_rsa.pub
+
+
+## 3. Create an variable users;test1;test2;test3. This users variable is an array.  Read the users
+variable and create users#
+
+
+- hosts: all
+  vars:
+    users:
+      - test1
+      - test2
+      - test3
+        
+  tasks:
+  - name: users list variable Example
+    debug:
+      msg: "{{ users [1] }}"
+
+
+##4. 
+- hosts: localhost
+  tasks:
+  - name: Ansible create file with content example
+    when: ansible_distribution == "rhel"
+    copy:
+      dest: "/tmp/hosts"
+      content: |
+        {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+        {{ hostvars[host].ansible_host }}
+
+
+
+
+
+
+
+
+
+##1 
+
+- name: Setup alternate SSH port
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^Port"
+  notify: "Restart sshd"
+    setype: "ssh_port_t"
+    state: "present"
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+- name: modify  lines 
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    
+
+
+
+##1.Create a playbook to set the timezone to CST; modify /etc/login.def file to set MAX passwd plicy
+to 90 day. Min to 7 day ; create a /etc/motd file with "welcome meassage"
+
+---
+- name: Configure the Timezone
+  hosts: all
+  tasks:
+
+- name: Set timezone to 'Central Standard Time' (GMT-06:00)
+  win_timezone:
+    timezone: Central Standard Time
+    
+    - name: Update Timezone to CST
+      copy: content="CST" dest=/etc/timezone owner=root group=root 
+      sudo: true
+      register: timezone
+ 
+ tasks:
+   - name: Set CST timezone
+     timezone: name=CST
+     become: yes
+   
+      
+      
+## modify /etc/login.def file to set MAX passwd plicy to 90 day. Min to 7 day#
+ 
+ vi  /etc/login.defs
+ 
+ PASS_MAX_DAYS 90
+ PASS_MIN_DAYS 7
+ 
+# create a /etc/motd file with "welcome meassage"
+- - -
+   -  hosts: ansible2 
+       user: root
+       vars: 
+        motd_welcome: 'Welcome message'
+       tasks:
+       - name: sample motd
+       copy:
+        dest: /etc/motd
+        content: "{{ motd_welcome }}"
+
+
+
+##2. Create a playbook to install and configure ntp. Ntp service need to running and when we change
+ntp.conf file ntp service need to restart.
+
+---
+- hosts: all
+  tasks:
+  - name: Install NTP
+    apt: name=ntp update-cache=yes
+
+
+---
+- name: Install and Configure NTP
+ hosts: all
+ vars:
+   ntp_server: [pool.ntp.org,]
+ tasks:
+ - name: Install NTP
+   apt: name=ntp update_cache=yes
+ - name: Copy the ntp.conf template file
+   template: src=ntp.conf.j2 dest=/etc/ntp.conf
+   notify: 
+     - restart ntp
+ handlers:
+ - name: restart ntp
+   service: name=ntp state=restarte
+  
+    - name: set up NTP configuration
+      template: src=ntp.conf dest=/etc/ntp.conf
+      notify:
+        - restart ntp
+      tags: ntp
+    
+    - name: Make sure NTP is started up
+      service: name=ntp 
+      state=started 
+      enabled=yes
+      tags: ntp
+
+ 
+
+
+
+
+
+# 2Create a playbook to install and configure ntp.
+---
+- name: This sets up an httpd webserver
+  hosts: ansibleclient01.local
+  become: true
+  tasks:
+  - name: Install apache packages 
+    yum:
+      name: httpd
+      state: present
+  - name: ensure httpd is running
+    service:
+      name: httpd 
+      state: started
+  - name: Open port 80 for http access
+    firewalld:
+      service: http
+      permanent: true
+      state: enabled
+  - name: Restart the firewalld service to load in the firewall changes
+    service: 
+      name: firewalld 
+      state: restarted
+
+ - name: httpd is started and enabled
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 terraform module for networking
 provider "aws" {
   region  = "us-east-1"
