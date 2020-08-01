@@ -53,10 +53,7 @@ should have full sudo access with no passwd option #
 
 - name: Set up authorized keys for the tomcat user
   authorized_key: user=tomcat key="{{item}}"
-  with_file:
-    - /home/railsdev/.ssh/id_rsa.pub
-
-
+  
 ## 3. Create an variable users;test1;test2;test3. This users variable is an array.  Read the users
 variable and create users#
 
@@ -84,10 +81,6 @@ variable and create users#
       content: |
         {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
         {{ hostvars[host].ansible_host }}
-
-
-
-
 
 
 
@@ -162,12 +155,6 @@ to 90 day. Min to 7 day ; create a /etc/motd file with "welcome meassage"
 ##2. Create a playbook to install and configure ntp. Ntp service need to running and when we change
 ntp.conf file ntp service need to restart.
 
----
-- hosts: all
-  tasks:
-  - name: Install NTP
-    apt: name=ntp update-cache=yes
-
 
 ---
 - name: Install and Configure NTP
@@ -177,8 +164,6 @@ ntp.conf file ntp service need to restart.
  tasks:
  - name: Install NTP
    apt: name=ntp update_cache=yes
- - name: Copy the ntp.conf template file
-   template: src=ntp.conf.j2 dest=/etc/ntp.conf
    notify: 
      - restart ntp
  handlers:
@@ -198,9 +183,6 @@ ntp.conf file ntp service need to restart.
       tags: ntp
 
  
-
-
-
 
 
 # 2Create a playbook to install and configure ntp.
