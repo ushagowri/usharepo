@@ -1,0 +1,15 @@
+pipeline{
+    agent any
+        stages{
+            stage('SCM Checkout'){
+                steps{
+                    git 'https://github.com/ushagowri/usharepo.git'
+                }
+            }
+            stage('Execute Ansible'){
+                steps{
+                    ansiblePlaybook installation: 'ansible2', playbook: 'ansibledemo.yml'
+                }
+            }
+        }
+}
